@@ -11,6 +11,6 @@ namespace app.BLL.Interface
         public IDepartmentRepository departmentRepository { get; set; }
         public IEmployeeReopsitory employeeReopsitory { get; set; }
 
-        int Complete();
+       Task <int> Complete();
     }
 }

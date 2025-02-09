@@ -15,9 +15,9 @@ namespace app.BLL.Repository
 
         public IDepartmentRepository departmentRepository { get ; set ; }
         public IEmployeeReopsitory employeeReopsitory { get ; set ; }
-        public int Complete()
+        public async Task<int> Complete()
         
-          =>  _context.SaveChanges();
+          => await _context.SaveChangesAsync();
 
         public void Dispose()
         

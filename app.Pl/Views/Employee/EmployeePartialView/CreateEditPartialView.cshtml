@@ -1,6 +1,8 @@
-﻿@model EmployeeViewModel
+﻿
+@model EmployeeViewModel
+@inject IDepartmentRepository DepartmentRepo
 @{
-    var Department = new SelectList(ViewBag.Departments, "Id", "Name");
+    var Department = new SelectList(DepartmentRepo.GetAll().Result, "Id", "Name");
 }
 <div class="mb-3">
     <label asp-for="Name" class="form-label"></label>

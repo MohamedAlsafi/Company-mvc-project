@@ -18,9 +18,9 @@ namespace app.Pl.Controllers
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        public IActionResult Index()
+        public async Task <IActionResult> Index()
 		{
-			var Departments = _unitOfWork.departmentRepository.GetAll();
+			var Departments = await _unitOfWork.departmentRepository.GetAll();
 			var MapedDepartment = _mapper.Map<IEnumerable<Department>, IEnumerable<DepartmentViewModel>>(Departments);
 			return View(MapedDepartment);
 		}
@@ -31,25 +31,25 @@ namespace app.Pl.Controllers
 		}
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-        public IActionResult Create(DepartmentViewModel departmentVM)
+        public async Task <IActionResult> Create(DepartmentViewModel departmentVM)
         {
 			if(ModelState.IsValid) // server side validation 
 			{
 				var MapedDepartment = _mapper.Map<DepartmentViewModel, Department>(departmentVM);	
 
-                _unitOfWork.departmentRepository.Add(MapedDepartment);
-				_unitOfWork.Complete();
+              await  _unitOfWork.departmentRepository.Add(MapedDepartment);
+				await _unitOfWork.Complete();
 				return RedirectToAction(nameof(Index));
 			}
             return View(departmentVM);
         }
-		public IActionResult Details (int? id , string ViewName= "Details")
+		public async Task <IActionResult> Details (int? id , string ViewName= "Details")
 		{
 			if (id is null)
 			{
 				return BadRequest();
 			}
-			var department = _unitOfWork.departmentRepository.Get(id.Value);
+			var department = await _unitOfWork.departmentRepository.Get(id.Value);
 			if (department is null)
 				return NotFound();
             var MapedDepartment = _mapper.Map<Department, DepartmentViewModel>(department);
@@ -58,7 +58,7 @@ namespace app.Pl.Controllers
             return View( ViewName, MapedDepartment);
 		}
 		[HttpGet]
-		public IActionResult Edit(int? id)
+		public async Task <IActionResult> Edit(int? id)
 		{
 			///if (id is null)
 			///	return BadRequest();
@@ -66,11 +66,11 @@ namespace app.Pl.Controllers
 			///if (department is null)
 			///	return NotFound();
 			///return View(department);
-			return Details(id, "Edit");
+			return await Details(id, "Edit");
 		}
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public IActionResult Edit ([FromRoute]int id, DepartmentViewModel departmentVM)
+		public async Task <IActionResult> Edit ([FromRoute]int id, DepartmentViewModel departmentVM)
 		{
 			if (id != departmentVM.Id)
 				return BadRequest();
@@ -81,7 +81,7 @@ namespace app.Pl.Controllers
                     var MapedDepartment = _mapper.Map<DepartmentViewModel, Department>(departmentVM);
 
                     _unitOfWork.departmentRepository.Update(MapedDepartment);
-					_unitOfWork.Complete();
+					await _unitOfWork.Complete();
                     return RedirectToAction(nameof(Index));
                 }
 				catch (Exception ex)
@@ -93,14 +93,14 @@ namespace app.Pl.Controllers
 			return View(departmentVM);
 		}
         [HttpGet]
-        public IActionResult Delete(int? id)
+        public async Task <IActionResult> Delete(int? id)
         {
             
-            return Details(id, "Delete");
+            return await Details(id, "Delete");
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Delete ([FromRoute] int id, DepartmentViewModel departmentVM)
+        public async Task <IActionResult> Delete ([FromRoute] int id, DepartmentViewModel departmentVM)
         {
             if (id != departmentVM.Id)
                 return BadRequest();
@@ -111,7 +111,7 @@ namespace app.Pl.Controllers
                     var MapedDepartment = _mapper.Map<DepartmentViewModel, Department>(departmentVM);
 
                     _unitOfWork.departmentRepository.Delete(MapedDepartment);
-					_unitOfWork.Complete();
+					await _unitOfWork.Complete();
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
