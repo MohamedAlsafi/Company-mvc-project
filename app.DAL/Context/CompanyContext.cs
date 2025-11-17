@@ -1,4 +1,5 @@
 ﻿using app.DAL.model;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace app.DAL.Context
 {
-	public class CompanyContext: DbContext 
+	public class CompanyContext: IdentityDbContext <User>
 	{
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         //{

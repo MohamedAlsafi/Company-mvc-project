@@ -1,7 +1,9 @@
 using app.BLL.Interface;
 using app.BLL.Repository;
 using app.DAL.Context;
+using app.DAL.model;
 using app.Pl.MapperProfile;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace app.Pl
@@ -25,6 +27,21 @@ namespace app.Pl
             });
 			builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 
+			#region Identity Module
+
+			//builder.Services.AddScoped<UserManager<User>>();
+			builder.Services.AddIdentity<User, IdentityRole>(opt=>
+			{
+				opt.Password.RequireNonAlphanumeric = true;
+				opt.Password.RequireDigit = true;
+				opt.Password.RequireLowercase = true;
+				opt.Password.RequireUppercase = true;
+				//P@ssw0rd
+			})
+
+				.AddEntityFrameworkStores<CompanyContext>();
+			builder.Services.AddAuthentication();
+			#endregion
 
             var app = builder.Build();
 
@@ -45,7 +62,7 @@ namespace app.Pl
 
 			app.MapControllerRoute(
 				name: "default",
-				pattern: "{controller=Home}/{action=Index}/{id?}");
+				pattern: "{controller=Account}/{action=Register}/{id?}");
 
 			app.Run();
 		}
