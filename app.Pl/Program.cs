@@ -3,6 +3,7 @@ using app.BLL.Repository;
 using app.DAL.Context;
 using app.DAL.model;
 using app.Pl.MapperProfile;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,7 @@ namespace app.Pl
 			#region Identity Module
 
 			//builder.Services.AddScoped<UserManager<User>>();
-			builder.Services.AddIdentity<User, IdentityRole>(opt=>
+			builder.Services.AddIdentity<User, IdentityRole>(opt =>
 			{
 				opt.Password.RequireNonAlphanumeric = true;
 				opt.Password.RequireDigit = true;
@@ -39,8 +40,15 @@ namespace app.Pl
 				//P@ssw0rd
 			})
 
-				.AddEntityFrameworkStores<CompanyContext>();
-			builder.Services.AddAuthentication();
+				.AddEntityFrameworkStores<CompanyContext>()
+				.AddDefaultTokenProviders();
+				
+			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+				.AddCookie(opt =>
+				{
+					opt.LoginPath = "Account/Login";
+					opt.AccessDeniedPath = "Home/Error";
+				});
 			#endregion
 
             var app = builder.Build();
@@ -57,12 +65,12 @@ namespace app.Pl
 			app.UseStaticFiles();
 
 			app.UseRouting();
-
+			app.UseAuthorization();
 			app.UseAuthorization();
 
 			app.MapControllerRoute(
 				name: "default",
-				pattern: "{controller=Account}/{action=Register}/{id?}");
+				pattern: "{controller=Account}/{action=Login}/{id?}");
 
 			app.Run();
 		}

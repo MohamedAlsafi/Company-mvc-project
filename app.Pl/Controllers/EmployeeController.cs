@@ -3,10 +3,12 @@ using app.BLL.Repository;
 using app.DAL.model;
 using app.Pl.ViewModels;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace app.Pl.Controllers
 {
+    [Authorize]
     public class EmployeeController : Controller
     {
 

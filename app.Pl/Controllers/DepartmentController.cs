@@ -2,10 +2,12 @@
 using app.DAL.model;
 using app.Pl.ViewModels;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace app.Pl.Controllers
 {
+	[Authorize]
 	public class DepartmentController : Controller
 	{
         //private readonly IDepartmentRepository _departmentRepository;

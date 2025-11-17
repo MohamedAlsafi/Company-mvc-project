@@ -2,16 +2,19 @@
 using app.Pl.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace app.Pl.Controllers
 {
     public class AccountController : Controller
     {
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
 
-        public AccountController(UserManager<User> userManager)
+        public AccountController(UserManager<User> userManager , SignInManager<User> signInManager)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         public IActionResult Register()
@@ -20,7 +23,7 @@ namespace app.Pl.Controllers
         }
 
         [HttpPost]
-        public async Task <IActionResult> Register(RegisterViewModel model)
+        public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -34,13 +37,48 @@ namespace app.Pl.Controllers
 
                 };
 
-               var result = await _userManager.CreateAsync(user, model.Password);
+                var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
-                    return RedirectToAction("Login");
+                    return RedirectToAction(nameof(Login));
                 else
                     foreach (var Erros in result.Errors)
                         ModelState.AddModelError(string.Empty, Erros.Description);
+
+            }
+
+            return View(model);
+        }
+
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user is not null)
+                {
+                    var check = await _userManager.CheckPasswordAsync(user, model.Password);
+
+                    if (check)
+                    {
+                   var result =   await _signInManager.PasswordSignInAsync(user,model.Password, model.RememberMe,false);
+                        if (result.Succeeded)
+                            return RedirectToAction("Index", "Home");
+                    }
+                    else
+                        ModelState.AddModelError(string.Empty, " Incorrect Password ");
+                }
+                else
+                    ModelState.AddModelError(string.Empty, "Email is not Exists");
+
 
             }
 
