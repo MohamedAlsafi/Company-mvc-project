@@ -49,14 +49,12 @@ namespace app.Pl.Controllers
 
             return View(model);
         }
-
         public IActionResult Login()
         {
             return View();
         }
 
         [HttpPost]
-
         public async Task<IActionResult> Login(LoginViewModel model)
         {
 
@@ -83,6 +81,12 @@ namespace app.Pl.Controllers
             }
 
             return View(model);
+        }
+
+        public new async Task <IActionResult> SignOut()
+        {
+          await  _signInManager.SignOutAsync();
+            return RedirectToAction(nameof(Login));   
         }
     }
 }
