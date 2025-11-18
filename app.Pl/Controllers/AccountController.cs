@@ -88,5 +88,34 @@ namespace app.Pl.Controllers
           await  _signInManager.SignOutAsync();
             return RedirectToAction(nameof(Login));   
         }
+
+        public IActionResult ForgetPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendEmail(ForgetPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user is not null)
+                {
+                    var email = new Email
+                    {
+                        Subject= "Reset Password",
+                        To = model.Email,
+                        Body = "Link"
+                    };
+                    //
+
+                }
+                else
+                    ModelState.AddModelError(string.Empty, "Email is Not Exsist");
+            }
+            else
+                return View("ForgetPassword", model);
+        }
     }
 }
