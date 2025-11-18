@@ -1,7 +1,11 @@
 ﻿using app.DAL.model;
+using app.Pl.Helper;
 using app.Pl.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Security.Policy;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace app.Pl.Controllers
@@ -10,11 +14,13 @@ namespace app.Pl.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        //private readonly EmailSetting _emailSetting;
 
-        public AccountController(UserManager<User> userManager , SignInManager<User> signInManager)
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            //_emailSetting = emailSetting;
         }
 
         public IActionResult Register()
@@ -67,7 +73,7 @@ namespace app.Pl.Controllers
 
                     if (check)
                     {
-                   var result =   await _signInManager.PasswordSignInAsync(user,model.Password, model.RememberMe,false);
+                        var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
                         if (result.Succeeded)
                             return RedirectToAction("Index", "Home");
                     }
@@ -83,10 +89,10 @@ namespace app.Pl.Controllers
             return View(model);
         }
 
-        public new async Task <IActionResult> SignOut()
+        public new async Task<IActionResult> SignOut()
         {
-          await  _signInManager.SignOutAsync();
-            return RedirectToAction(nameof(Login));   
+            await _signInManager.SignOutAsync();
+            return RedirectToAction(nameof(Login));
         }
 
         public IActionResult ForgetPassword()
@@ -102,20 +108,70 @@ namespace app.Pl.Controllers
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user is not null)
                 {
-                    var email = new Email
-                    {
-                        Subject= "Reset Password",
-                        To = model.Email,
-                        Body = "Link"
-                    };
-                    //
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var tokenEncoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
+                    var resetPasswordLink = Url.Action(
+                        "ResetPassword",
+                        "Account",
+                        new { email = user.Email, token = tokenEncoded },
+                        Request.Scheme
+                    );
+
+                    var emailMessage = new Email
+                    {
+                        Subject = "Reset Password",
+                        To = model.Email,
+                        Body = resetPasswordLink
+                    };
+
+                    EmailSetting.SendEmail(emailMessage);
+
+                    return RedirectToAction(nameof(CheckYourInbox));
                 }
                 else
-                    ModelState.AddModelError(string.Empty, "Email is Not Exsist");
+                {
+                    ModelState.AddModelError(string.Empty, "Email does not exist");
+                }
             }
-            else
-                return View("ForgetPassword", model);
+
+
+            return View("ForgetPassword", model);
+        }
+
+        public IActionResult CheckYourInbox()
+        {
+            return View();
+        }
+
+        public IActionResult ResetPassword(string email, string token)
+        {
+            TempData["email"] = email;
+            TempData["token"] = token;
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                string email = TempData["email"] as string;
+                string token = TempData["token"] as string;
+                var user = await _userManager.FindByEmailAsync(email);
+                var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+                if (result.Succeeded)
+
+                    return RedirectToAction(nameof(Login));
+
+                else
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+
+            }
+            return View(model);
         }
     }
 }
